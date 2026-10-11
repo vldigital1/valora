@@ -1,0 +1,9 @@
+{
+  "name": "Valora",
+  "short_name": "Valora",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FAF9F5",
+  "theme_color": "#1F1E1D",
+  "icons": [{ "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
