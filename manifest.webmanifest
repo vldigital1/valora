@@ -1,0 +1,9 @@
+{
+  "name": "Gerador de Orçamento",
+  "short_name": "Orçamentos",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FAF9F5",
+  "theme_color": "#C96442",
+  "icons": [{ "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
