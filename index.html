@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Valora</title>
+<meta name="description" content="Valora: cadastre lojas, peças e serviços e gere orçamentos em PDF, imagem e Word.">
+<meta name="theme-color" content="#1F1E1D">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
+<link rel="stylesheet" href="assets/style.css?v=2026.10.10">
+<script>
+  (function(){
+    var t = null, c = null, r = document.documentElement;
+    try{ t = localStorage.getItem('gerador-orcamento-tema'); c = localStorage.getItem('gerador-orcamento-cor'); }catch(e){}
+    if(t !== 'light' && t !== 'dark') t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    r.dataset.theme = t;
+    if(c && /^#[0-9a-f]{6}$/i.test(c)){
+      var n = parseInt(c.slice(1), 16), l = (0.2126 * (n >> 16) + 0.7152 * (n >> 8 & 255) + 0.0722 * (n & 255)) / 255;
+      r.style.setProperty('--acc', c); r.style.setProperty('--acc-txt', l > 0.62 ? '#1F1E1D' : '#FFFFFF');
+    }
+  })();
+</script>
+</head>
+<body>
+<div id="boot" aria-hidden="true"><div class="boot-in">
+  <svg class="valora-ic boot-ic" viewBox="0 0 80 80" aria-hidden="true"><rect x="0.75" y="0.75" width="78.5" height="78.5" rx="19.5" fill="#1F1E1D" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/><path d="M14 26a6 6 0 0 1 6-6h28l18 20-18 20H20a6 6 0 0 1-6-6Z" style="fill:var(--acc)"/><circle cx="52" cy="40" r="4.5" fill="#1F1E1D"/><path d="M23 31l8 18 8-18" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="boot-t">Preparando seu painel…</div>
+  <div class="boot-barra"><i></i></div>
+</div></div>
+<div class="app">
+  <div class="topbar">
+    <div class="marca"><span class="marca-logo"><svg class="valora-ic" viewBox="0 0 80 80" aria-hidden="true"><rect x="0.75" y="0.75" width="78.5" height="78.5" rx="19.5" fill="#1F1E1D" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/><path d="M14 26a6 6 0 0 1 6-6h28l18 20-18 20H20a6 6 0 0 1-6-6Z" style="fill:var(--acc)"/><circle cx="52" cy="40" r="4.5" fill="#1F1E1D"/><path d="M23 31l8 18 8-18" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="valora-txt">valora<i>.</i></span></span></div>
+    <button class="btn btn-ic btn-ghost" onclick="document.querySelector('.side').classList.toggle('aberta')" aria-label="Menu"><i data-lucide="menu"></i></button>
+  </div>
+  <aside class="side">
+    <div class="marca"><span class="marca-logo"><svg class="valora-ic" viewBox="0 0 80 80" aria-hidden="true"><rect x="0.75" y="0.75" width="78.5" height="78.5" rx="19.5" fill="#1F1E1D" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/><path d="M14 26a6 6 0 0 1 6-6h28l18 20-18 20H20a6 6 0 0 1-6-6Z" style="fill:var(--acc)"/><circle cx="52" cy="40" r="4.5" fill="#1F1E1D"/><path d="M23 31l8 18 8-18" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="valora-txt">valora<i>.</i></span></span></div>
+    <nav class="nav">
+      <button class="novo" data-view="novo" onclick="novoOrcamento()"><i data-lucide="plus"></i> Novo orçamento</button>
+      <button data-view="painel" onclick="go('painel')"><i data-lucide="layout-dashboard"></i> Painel</button>
+      <button data-view="orcamentos" onclick="go('orcamentos')"><i data-lucide="files"></i> Orçamentos</button>
+      <div class="nav-t">Cadastros</div>
+      <button data-view="lojas" onclick="go('lojas')"><i data-lucide="store"></i> Lojas</button>
+      <button data-view="produtos" onclick="go('produtos')"><i data-lucide="package"></i> Peças e serviços</button>
+      <button data-view="clientes" onclick="go('clientes')"><i data-lucide="users"></i> Clientes</button>
+    </nav>
+    <div class="side-rod nav">
+      <button data-view="backup" onclick="go('backup')"><i data-lucide="database"></i> Backup</button>
+      <button onclick="abrirAparencia()"><i data-lucide="palette"></i> Aparência</button>
+      <small class="versao"></small>
+    </div>
+  </aside>
+  <main id="app"></main>
+</div>
+<div id="modal"><div class="janela" id="janela"></div></div>
+<div id="toast"></div>
+<div id="carregando"></div>
+<div id="render" aria-hidden="true"></div>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script src="assets/modelos.js?v=2026.10.10"></script>
+<script src="assets/app.js?v=2026.10.10"></script>
+</body>
+</html>
