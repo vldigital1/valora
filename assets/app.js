@@ -2,7 +2,7 @@
 /* ============================================================
    Valora — painel de lojas, peças, serviços e orçamentos
    ============================================================ */
-const VERSAO = '2026.10.11';
+const VERSAO = '2026.10.12';
 const DB_KEY = 'gerador-orcamento-v1';
 const TEMA_KEY = 'gerador-orcamento-tema';
 const COR_KEY = 'gerador-orcamento-cor';
@@ -480,15 +480,17 @@ async function excluirCliente(id){
 
 /* ================= Lista de orçamentos ================= */
 let filtroO = {loja:'', status:'', q:''};
+const placaDe = o => String(o.veiculo?.placa || '').trim().toUpperCase();
 const nomeCliente = o => o.clienteId ? (cliente(o.clienteId)?.nome || o.clienteNome || '—') : (o.clienteNome || 'Sem cliente');
 function tabelaOrc(lista, curta){
   if(!lista.length) return `<div class="vazio">${ic('file-text')}<p>Nenhum orçamento ainda.</p></div>`;
-  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nº</th><th class="cel-oculto">Data</th>${curta ? '' : '<th class="cel-oculto">Loja</th>'}<th>Cliente</th>
-    ${curta ? '' : '<th class="r cel-oculto">Peças</th><th class="r cel-oculto">Serviços</th>'}<th class="r">Total</th><th>Status</th><th></th></tr></thead><tbody>
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nº</th><th class="cel-oculto">Data</th>${curta ? '' : '<th class="cel-oculto">Loja</th>'}<th>Cliente</th><th>Placa</th>
+    ${curta ? '' : '<th class="r cel-oculto md-oculto">Peças</th><th class="r cel-oculto md-oculto">Serviços</th>'}<th class="r">Total</th><th>Status</th><th></th></tr></thead><tbody>
     ${lista.map(o => { const t = calcular(o); return `<tr>
       <td class="mono b">${fmtNum(o)}</td><td class="muted cel-oculto">${fmtData(o.data)}</td>
-      ${curta ? '' : `<td class="cel-oculto">${esc(loja(o.lojaId)?.nome || '—')}</td>`}<td>${esc(nomeCliente(o))}</td>
-      ${curta ? '' : `<td class="r mono muted cel-oculto">${brl(t.pecas.liq)}</td><td class="r mono muted cel-oculto">${brl(t.servicos.liq)}</td>`}
+      ${curta ? '' : `<td class="cel-oculto">${esc(loja(o.lojaId)?.nome || '—')}</td>`}<td class="nowrap">${esc(nomeCliente(o))}</td>
+      <td>${placaDe(o) ? `<span class="placa">${esc(placaDe(o))}</span>` : '<span class="muted">—</span>'}</td>
+      ${curta ? '' : `<td class="r mono muted cel-oculto md-oculto">${brl(t.pecas.liq)}</td><td class="r mono muted cel-oculto md-oculto">${brl(t.servicos.liq)}</td>`}
       <td class="r mono b">${brl(t.total)}</td>
       <td><select class="status-sel" onchange="mudarStatus('${o.id}',this.value)">
         ${['pendente', 'aprovado', 'recusado'].map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${rotStatus(s)}</option>`).join('')}</select></td>
@@ -506,7 +508,7 @@ function vOrcamentos(){
         ${db.lojas.map(l => `<option value="${l.id}" ${filtroO.loja === l.id ? 'selected' : ''}>${esc(l.nome)}</option>`).join('')}</select>
       <select onchange="filtroO.status=this.value;listaOrc()"><option value="">Todos os status</option>
         ${['pendente', 'aprovado', 'recusado'].map(s => `<option value="${s}" ${filtroO.status === s ? 'selected' : ''}>${rotStatus(s)}</option>`).join('')}</select>
-      <div class="busca">${ic('search')}<input placeholder="Buscar por nº ou cliente…" value="${esc(filtroO.q)}" oninput="filtroO.q=this.value;listaOrc()"></div>
+      <div class="busca">${ic('search')}<input placeholder="Buscar por nº, cliente ou placa…" value="${esc(filtroO.q)}" oninput="filtroO.q=this.value;listaOrc()"></div>
     </div>
     <section class="card" id="listaO"></section>`;
   listaOrc();
@@ -514,7 +516,7 @@ function vOrcamentos(){
 function listaOrc(){
   const q = normal(filtroO.q);
   $('#listaO').innerHTML = tabelaOrc(db.orcamentos.filter(o => (!filtroO.loja || o.lojaId === filtroO.loja) && (!filtroO.status || o.status === filtroO.status) &&
-    (!q || normal(fmtNum(o) + ' ' + nomeCliente(o)).includes(q))).sort((a, b) => b.criado - a.criado));
+    (!q || normal(fmtNum(o) + ' ' + nomeCliente(o) + ' ' + placaDe(o)).includes(q) || placaDe(o).replace(/\W/g, '').toLowerCase().includes(q.replace(/\W/g, '')))).sort((a, b) => b.criado - a.criado));
 }
 function mudarStatus(id, s){ db.orcamentos.find(o => o.id === id).status = s; if(draft?.id === id) draft.status = s; salvarDB(); toast('Status: ' + rotStatus(s)); }
 async function excluirOrc(id){
@@ -975,7 +977,11 @@ document.addEventListener('keyup', e => {
 
 /* ================= Imprimir / baixar ================= */
 function exportarAtual(){ const o = salvarOrc(true); if(o) abrirExportar(o.id); }
-const nomeArquivo = o => `Orcamento-${fmtNum(o)}-${normal(nomeCliente(o) || 'cliente').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+const nomeArquivo = o => {
+  const cli = normal(nomeCliente(o) || 'cliente').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const placa = placaDe(o).replace(/[^A-Z0-9]/g, '');
+  return `Orcamento-${fmtNum(o)}-${cli}${placa ? '-' + placa : ''}`;
+};
 function encaixar(cont, o, modelo, largura){
   const el = montarDoc(o, modelo), w = document.createElement('div');
   w.className = 'encaixe'; w.appendChild(el); cont.innerHTML = ''; cont.appendChild(w);
